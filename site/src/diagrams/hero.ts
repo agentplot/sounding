@@ -57,6 +57,14 @@ function geometry(layout: Layout) {
       cardHd: { x: 660, y: 62 },
       card: { x: 660, y: 74, w: 220, h: 272 },
       status: { x: 660, y: 368 },
+      carry: (f: Box) => [
+        { x: f.x + f.w, y: f.y + f.h / 2 },
+        { x: 398, y: f.y + f.h / 2 },
+        { x: 398, y: 344 },
+        { x: 648, y: 344 },
+        { x: 648, y: 90 },
+        { x: 672, y: 90 },
+      ],
       wire: 'M220,124 C232,124 232,124 244,124',
       wire2: 'M220,251 C232,251 232,251 244,251',
       caps: (i: number) => ({ x: 20 + i * 222, y: 418 }),
@@ -79,6 +87,12 @@ function geometry(layout: Layout) {
     cardHd: { x: 12, y: 664 },
     card: { x: 8, y: 674, w: 344, h: 196 },
     status: { x: 12, y: 894 },
+    carry: (f: Box) => [
+      { x: f.x + f.w, y: f.y + f.h / 2 },
+      { x: 347, y: f.y + f.h / 2 },
+      { x: 347, y: 686 },
+      { x: 330, y: 686 },
+    ],
     wire: '',
     wire2: '',
     caps: (i: number) => ({ x: 8, y: 926 + i * 18 }),
@@ -250,10 +264,13 @@ export function hero(layout: Layout, opts: { id?: string; standalone?: boolean }
   add(`<text class="hd" x="${g.cardHd.x}" y="${g.cardHd.y}">THE CONCLUSION</text>`);
   const C = g.card;
   {
-    // conclusion.md travels from the worktree to the card.
-    const f = g.file(2);
-    d.fly('cf', f.x + 6 - (C.x + 12), f.y + 6 - (C.y + 12), 64, 64.5, 69, 70.5);
-    add(`<rect class="chip cf" x="${C.x + 12}" y="${C.y + 12}" width="96" height="14" rx="3"/>`);
+    // conclusion.md travels from the worktree to the card, round the
+    // session's pane rather than over it.
+    const pts = g.carry(g.file(2));
+    const end = pts[pts.length - 1];
+    add(`<polyline class="dash ${d.show('cfway', 64, 70.5)}" points="${pts.map((p) => `${p.x},${p.y}`).join(' ')}"/>`);
+    d.route('cf', pts, 64, 69.5, 70.5);
+    add(`<circle class="chip cf" cx="${end.x}" cy="${end.y}" r="5"/>`);
   }
   add(`<rect class="box2" x="${C.x}" y="${C.y}" width="${C.w}" height="${C.h}" rx="8" stroke-dasharray="4 3"/>`);
   add(`<text class="m xs ${d.show('cwait', 0, 69)}" x="${C.x + C.w / 2}" y="${C.y + C.h / 2}" text-anchor="middle">${n ? 'not yet' : 'not yet written'}</text>`);
