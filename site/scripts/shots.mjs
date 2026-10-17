@@ -54,6 +54,15 @@ async function open(width, theme, path, reduced = false, height = 900) {
   await page.evaluate(() => document.fonts.ready);
   return { ctx, page };
 }
+// An element's shot is taken through the viewport, so the sticky header and
+// the phone's "On this page" bar would cover the top of a diagram: hide them.
+const unstick = (page) =>
+  page.evaluate(() => {
+    for (const e of document.querySelectorAll('body *')) {
+      const pos = getComputedStyle(e).position;
+      if (pos === 'fixed' || pos === 'sticky') e.style.visibility = 'hidden';
+    }
+  });
 
 for (const [slug, path] of pages) {
   for (const width of widths) {
@@ -67,6 +76,7 @@ for (const [slug, path] of pages) {
       }
       // A viewport taller than any diagram, so an element shot is never cut.
       const { ctx, page } = await open(width, theme, path, false, 2400);
+      await unstick(page);
       // Frames of each diagram in this layout, in the dark theme at desktop
       // width and both themes on a phone.
       const figs = await page.$$('figure.diagram');
@@ -106,7 +116,8 @@ for (const [slug, path] of pages) {
   }
   // The still a reader who asks for less motion sees.
   for (const width of widths) {
-    const { ctx, page } = await open(width, 'dark', path, true);
+    const { ctx, page } = await open(width, 'dark', path, true, 2400);
+    await unstick(page);
     const figs = await page.$$('figure.diagram');
     for (const fig of figs) {
       const name = (await fig.getAttribute('class')).match(/diagram-([\w-]+)/)[1];
