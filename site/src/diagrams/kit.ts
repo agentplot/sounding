@@ -97,7 +97,9 @@ export class Diagram {
     this.css.push(css);
   }
 
-  // Opacity hi inside [a, b], lo outside. A window that starts at or before 0
+  // Opacity hi inside [a, b], lo outside, fading in over [a, a + E] and out
+  // over [b, b + E], so a window that starts where another ends crosses it
+  // rather than sharing a frame with it. A window that starts at or before 0
   // is shown at the loop's start too.
   show(cls: string, a: number, b: number, lo = 0, hi = 1) {
     const E = this.E;
@@ -113,8 +115,8 @@ export class Diagram {
     } else {
       fr = [
         [0, `opacity:${lo}`],
-        [a - E, `opacity:${lo}`],
-        [a, `opacity:${hi}`],
+        [a, `opacity:${lo}`],
+        [Math.min(a + E, b), `opacity:${hi}`],
         [b, `opacity:${hi}`],
         [Math.min(b + E, 100), `opacity:${lo}`],
       ];
