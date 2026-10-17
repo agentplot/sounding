@@ -1,0 +1,71 @@
+---
+title: sounding
+description: sounding works one question in one agent session, in a worktree of its own, and ends on a conclusion you accept, send back for another round, or drop.
+template: splash
+hero:
+  tagline: "sounding works one question in one agent session, in a worktree of its own, and ends on a conclusion you decide."
+  actions:
+    - text: How it works
+      link: /sounding/how-it-works/
+      icon: right-arrow
+    - text: Read the design
+      link: https://agentplot.github.io/blueprints/sounding/
+      icon: external
+      variant: secondary
+    - text: GitHub
+      link: https://github.com/agentplot/sounding
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+## Why
+
+Some work ends in an answer: whether to take a major release, or how
+to settle what a meeting left open. Asked inside a session busy with
+something else, such a question gets a passing answer that nobody
+decides and nothing records. sounding gives each question a session, a
+worktree and an end of its own, and you decide the answer.
+
+<CardGrid>
+  <Card title="One question, one place" icon="seti:git">
+    `sounding open` writes the question and its sources into a worktree
+    on `sounding/<name>`. The session may write prototype code there to
+    test an answer, and nothing lands from that branch.
+  </Card>
+  <Card title="Three exits" icon="right-arrow">
+    The session concludes, offers a finding beyond its question to
+    millpond as a capture, or asks you a question on a card and waits.
+  </Card>
+  <Card title="Kept to its question" icon="warning">
+    A stop check keeps the session from ending with no conclusion and no
+    note for the next round. A timebox ends each round, and the session
+    concludes with what it knows.
+  </Card>
+  <Card title="You decide" icon="approve-check">
+    Accept settles the question, and the work the conclusion proposes
+    becomes items of its own. Go on starts another round with your
+    notes. Drop records why and removes the worktree.
+  </Card>
+</CardGrid>
+
+## Where it stands
+
+sounding is designed and not built. Its design lives in
+[agentplot/blueprints](https://github.com/agentplot/blueprints) with
+the design of every tool around it, and its statement comes next. The
+[roadmap](/sounding/roadmap/) says what gets built in what order.
+
+<CardGrid>
+  <LinkCard
+    title="How it works"
+    description="The question and its place, the three exits, the stop check and the timebox, and rounds."
+    href="/sounding/how-it-works/"
+  />
+  <LinkCard
+    title="How it fits"
+    description="millpond sends it questions and keeps its conclusions, crew calls it, and Flywheel runs its elaborations on it."
+    href="/sounding/how-it-fits/"
+  />
+</CardGrid>

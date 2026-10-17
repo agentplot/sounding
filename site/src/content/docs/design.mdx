@@ -1,0 +1,56 @@
+---
+title: Design
+description: Where sounding's design lives, how it is written, and what binds the code.
+---
+
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+sounding's design lives in
+[agentplot/blueprints](https://github.com/agentplot/blueprints), with
+the designs of every tool around it. This site shows the design; the
+design book and the statement define it.
+
+<CardGrid>
+  <LinkCard
+    title="The design book"
+    description="sounding's settled design, one chapter per part, written for a reader who was not in the room."
+    href="https://agentplot.github.io/blueprints/sounding/"
+  />
+  <LinkCard
+    title="The statement"
+    description="sounding's invariants as numbered clauses, which the code cites by number. It comes next: plan step Q1."
+    href="https://github.com/agentplot/blueprints"
+  />
+</CardGrid>
+
+## What each document is
+
+- **The capture design**, `design/capture/design.md`, covers every part
+  that turns an outside event into landed work: headwater, eddy,
+  millpond, sounding, sluice, crew, Flywheel and the first fleet that
+  runs them. Its section "Questions: sounding" is sounding's.
+  `plan.md` beside it orders the work, and its decision 11 settles what
+  sounding is.
+- **sounding's statement**, `design/sounding/requirements.md`, is
+  written from that design: the question and its sources, the place,
+  the three exits, the stop check, the timebox, rounds, the operator's
+  decision, and what sounding never does. A fresh model reconstructs
+  sounding from the statement alone, and the questions it asks are
+  ruled and folded back in before the statement lands. It comes next,
+  as plan step Q1.
+- **The design book** explains the design chapter by chapter, with the
+  statement as its appendix.
+
+## What binds the code
+
+The statement binds. This repository cites its clauses by number and
+never restates them. The rules a change here keeps, and the decisions
+behind them, follow the statement into `docs/architecture/` and
+`docs/adr/`. The founding decisions are three: one question, one
+session, one conclusion; plugins outside the core; and a conclusion is
+never a signal.
+
+The capture contract belongs to Flywheel's statement, and
+flywheel-next's capture crate implements it. An offer prints its lines
+with that crate, so a question about an offer's lines goes to Flywheel's
+statement first.

@@ -1,0 +1,79 @@
+---
+title: How it fits
+description: Where sounding sits among millpond, crew, sluice, headwater, eddy and Flywheel, where its questions come from, and what it never does.
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import Family from '@agentplot/site-theme/Family.astro';
+
+sounding takes the work that ends in an answer. millpond's items, crew's
+planner and your own sessions send it questions, and its conclusions go
+back as the record that settles them. Each tool stands alone, with its
+own Claude Code and herdr plugins.
+
+<Family highlight="sounding" />
+
+## The family
+
+<CardGrid>
+  <Card title="millpond · the inbox">
+    Sends an item that asks a question to a sounding, with the item's
+    signals and captures as its sources. It keeps the accepted
+    conclusion as the item's record, makes an item of each piece of
+    work the conclusion proposes, and lands each offer as a capture.
+  </Card>
+  <Card title="headwater and eddy · what is noticed">
+    headwater reports releases, and a key on a release that needs
+    judgment opens a sounding. eddy lists meetings, and `/sound` on a
+    decision a meeting left open takes its transcript as a source.
+  </Card>
+  <Card title="sluice · landing">
+    Lands the work a conclusion proposes, once it reaches an item's
+    worktree or crew's plan. sluice never lands from a sounding's
+    branch: the plugin refuses that submission.
+  </Card>
+  <Card title="crew · teams and plans">
+    crew's planner and design agent open a sounding for an item that
+    asks a question, as crew calls millpond. crew shows each conclusion
+    on its rail and turns the work an accepted one proposes into plan
+    entries.
+  </Card>
+  <Card title="Flywheel · the umbrella">
+    Each of an intent's elaborations runs as a sounding. Finishing with
+    deliverables is `conclude`, blocking on a question is `ask`, and an
+    offer is `offer`.
+  </Card>
+</CardGrid>
+
+## Where questions come from
+
+| Setup | Questions from | Conclusions decided on |
+|---|---|---|
+| On its own | your `/sound` | a card, or sounding's herdr plugin |
+| With millpond | items millpond sends; a key on a headwater release that needs judgment; `/sound` on a decision a meeting left open, its transcript a source | the same, recorded against the item |
+| With crew | crew's planner and design agent, calling `sounding open` as crew calls millpond | crew's rail |
+| With Flywheel | an intent's elaborations, each one a sounding | Flywheel's elaboration types, which write the conclusion into the design book and claims |
+
+Moving from one setup to the next changes who sends the question and
+where you decide the conclusion. The question, the worktree, the three
+exits and the rounds stay the same.
+
+## What sounding never does
+
+- **It never lands code.** Prototype code stays on `sounding/<name>`.
+  The work you accept reaches `main` through an item's worktree or
+  crew's plan, and through sluice.
+- **It never writes the inbox except through millpond.** An offer goes
+  to `millpond land` like any other capture.
+- **It never turns a conclusion into a signal.** An accepted conclusion
+  is the record that settles signals, and only offers come back as
+  signals.
+- **It never plans across items.** crew's planner orders work today,
+  and Flywheel's does later.
+
+## Built once, used everywhere
+
+sounding holds the one implementation of a question, its rounds and the
+shape of a conclusion. It grows out of crew's elaborations (crew ADR
+0019), and crew and Flywheel both build on it: crew calls sounding as
+it calls millpond, and each of Flywheel's elaborations is a sounding.

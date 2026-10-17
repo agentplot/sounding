@@ -1,0 +1,93 @@
+---
+title: Roadmap
+description: What gets built in what order, and where sounding meets millpond, crew and Flywheel.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+Nothing of sounding is built yet. Each step ends with something running
+on real work before the next one depends on it. A step is done when a
+check passes or an observation holds. The step names are the plan's, in
+agentplot/blueprints' `design/capture/plan.md`. sounding needs nothing
+of millpond's until millpond sends it questions (Q5), so its own steps
+proceed beside millpond's.
+
+## sounding's own steps
+
+<Steps>
+
+1. **Q1 · The statement.** sounding's statement is written from the
+   capture design: the question and its sources, the place, the three
+   exits, the stop check, the timebox, rounds, the operator's decision,
+   and what sounding never does. A fresh model reconstructs sounding
+   from it, and the questions it asks are ruled and folded back in.
+
+   _Needs_ the capture design's decisions ruled (D2). _Done when_ the
+   reconstruction's questions are ruled and folded in, Vale is clean,
+   and the statement lands on blueprints' `main`.
+
+2. **Q2 · The repository's rules.** This repository, in Rust on
+   kit-standard's code profile, gains its founding decisions: one
+   question, one session, one conclusion; plugins outside the core; a
+   conclusion is never a signal. With them come its rules, its sluice
+   gate, `cliff.toml` and its OpenSpec configuration.
+
+   _Needs_ Q1. _Done when_ sluice protects `main` and the first change
+   lands through it.
+
+3. **Q3 · The core and the Claude Code plugin.** `sounding open`,
+   `list`, `conclude`, `offer`, `ask`, `accept`, `go-on` and `drop`,
+   with the worktree, `question.md`, `conclusion.md` and `rounds/`. An
+   offer prints capture lines with flywheel-next's capture crate and
+   pipes them to `millpond land` where millpond is installed. The plugin
+   brings `/sound`, the start hook, the stop check, the timebox, the
+   MCP tools and the guard on `sounding/*` branches.
+
+   _Needs_ Q2. _Done when_ a question opened with `/sound` in one
+   session ends on a conclusion in another while the first session's
+   work goes on undisturbed. A session that tries to stop with no
+   conclusion is sent back, an offer's lines pass the conformance pack,
+   and a sluice submission from a sounding's branch is refused.
+
+4. **Q4 · The herdr plugin.** The sidebar of open soundings with their
+   rounds and states, a workspace for each, and keys to start, open,
+   accept, send back and drop one and to open its conclusion in
+   plannotator.
+
+   _Needs_ Q3. _Done when_ the plugin installs from sounding's tag, and
+   a sounding started, sent back once and accepted from herdr shows each
+   state in the sidebar.
+
+</Steps>
+
+## Where it meets the others
+
+<Steps>
+
+1. **Q5 · millpond sends a question to a sounding.** millpond's `send`
+   takes a sounding as its target. millpond opens the sounding with the
+   item's signals and captures as its sources, keeps the accepted
+   conclusion as the item's record, and makes an item of each piece of
+   work the conclusion proposes.
+
+   _Needs_ millpond's sends (P6) and Q3. _Done when_ an item asking
+   whether to take a major release goes to a sounding and its accepted
+   conclusion shows on the item. The bump the conclusion proposes
+   arrives as a new item, and curation answers the release's next
+   signal by naming the conclusion.
+
+2. **C6 · crew calls sounding.** crew's planner and design agent open a
+   sounding for an item that asks a question, show each conclusion on
+   crew's rail, and turn the work an accepted one proposes into plan
+   entries.
+
+   _Needs_ crew's amended record (C1), crew's curator on millpond (C4)
+   and Q3. _Done when_ one real question goes from an item through a
+   sounding to accepted plan entries on crew's rail, with no
+   `<kit>/elaborations/` worktree made.
+
+</Steps>
+
+Flywheel follows on the same parts: once it hosts (F4 and F5), each of
+an intent's elaborations runs as a sounding, and its elaboration types
+write the conclusion into the design book and claims.

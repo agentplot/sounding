@@ -1,0 +1,101 @@
+---
+title: How it works
+description: How a sounding opens on one question, works it in a worktree of its own, leaves by one of three exits, and ends on a conclusion the operator accepts, sends back or drops.
+---
+
+import Diagram from '../../components/Diagram.astro';
+import Rounds from '../../components/Rounds.astro';
+
+A **sounding** is one question, worked by one agent session in one
+place, ending on one **conclusion**. The operator decides each
+conclusion. sounding is a standalone tool, and it works the same on its
+own, with millpond, with crew or under Flywheel.
+
+## The question
+
+`sounding open` writes `question.md`: the question and its sources. A
+question reaches sounding three ways:
+
+- **From millpond**, as an item that asks a question: whether to take a
+  major release, or how to settle what a meeting left open. Its sources
+  are the item's signals, the captures they came from, and any earlier
+  conclusion on the subject.
+- **From any Claude Code session**, with `/sound <question>`. The
+  sounding opens while that session goes on with its own work.
+- **From a key** in another tool's herdr plugin, such as headwater's on
+  a release that needs judgment.
+
+## The place
+
+The session works in a worktree of the repository the question is
+about, on the branch `sounding/<name>`. It may write prototype code
+there to test an answer, and that code never lands from the sounding's
+branch: sounding's Claude Code plugin refuses a sluice submission from
+any `sounding/*` branch. The work you accept reaches `main` the way any
+work does, through an item's worktree or crew's plan, and through
+sluice.
+
+## Three exits
+
+<Diagram name="exits" caption="One round of one session. It asks you a question and waits, offers millpond a finding beyond its question, is sent back by the stop check, and concludes when its timebox runs out." />
+
+The session leaves by one of three commands:
+
+| Exit | What follows |
+|---|---|
+| `sounding conclude` | Writes `conclusion.md`: the answer, its evidence, what it would change, the work it proposes, and what stays open. You decide it. |
+| `sounding offer` | Hands a finding beyond the question to `millpond land` as a capture of its own. The finding is its own excerpt, of kind `ask`, asserted by the sounding, under the key `sounding/<name>/<n>`. |
+| `sounding ask` | Puts a question only you can answer on a card. The session waits for your answer. |
+
+An offer keeps the session on its question. Whatever else it notices
+goes to the inbox, where curation gives it a move like any other
+signal.
+
+Two guards hold each round to its question:
+
+- **The stop check** keeps the session from ending without a conclusion
+  or a note saying where the next round would start.
+- **The timebox** limits each round. When it runs out, the session
+  concludes with what it knows.
+
+## Deciding a conclusion
+
+<Rounds caption="Round 1 goes back with a note and is kept as rounds/1.md. Round 2 is accepted: millpond keeps it as the item's record, and the work it proposes arrives as two new items." />
+
+You decide each conclusion on a card, in sounding's herdr plugin, or on
+crew's rail:
+
+- **Accept** settles the question. millpond keeps the conclusion as the
+  item's record, and each piece of work the conclusion proposes becomes
+  an item of its own, or an entry in crew's plan.
+- **Go on** starts the next round in the same worktree. The conclusion
+  moves to `rounds/<n>.md`, and your notes join the next session's
+  question.
+- **Drop** records the reason and removes the worktree.
+
+## A conclusion is never a signal
+
+Curation never judges a moved signal again, and nobody asks you to
+approve the same thing twice. So an accepted conclusion enters the inbox
+as the record that settles signals: when a later signal arrives on the
+same subject, curation answers it by naming the conclusion. Only offers
+come back as signals.
+
+## Where you work with it
+
+- **The command line:** `sounding open`, `list`, `conclude`, `offer`,
+  `ask`, `accept`, `go-on` and `drop`.
+- **The Claude Code plugin** gives every session `/sound <question>`. A
+  sounding's own session gets its question, its sources and its earlier
+  rounds from a hook at its start, and the stop check at its end. The
+  plugin serves `soundings`, `conclusion`, `accept`, `go_on` and `drop`
+  over MCP, and refuses a sluice submission from a `sounding/*` branch.
+- **The herdr plugin** lists the open soundings in the sidebar, each
+  with its round and its state: working, waiting on you, or parked. Each
+  sounding has a workspace, with the session's pane and its conclusion
+  beside it.
+
+<Diagram name="herdr" caption="Keys start, open, accept, send back and drop a sounding, and open its conclusion in plannotator for notes." />
+
+A sounding runs one of two ways: unattended, ending on a card, or with
+you, in a pane beside you as a conversation (`--with-me`).

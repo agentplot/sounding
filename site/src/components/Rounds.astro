@@ -1,0 +1,441 @@
+---
+// How it works: rounds. Round 1 ends on a conclusion; the operator sends it
+// back with a note, so it is kept as rounds/1.md and the note joins the
+// question; round 2 works in the same worktree and concludes; the operator
+// accepts it, millpond keeps it as item 4's record, and the two pieces of
+// work it proposes arrive in millpond as items of their own. Drawn on a
+// canvas, since the conclusion itself travels: out of the worktree, back
+// into it as a round, and on into millpond. Every position is a function
+// of the time in the loop, so the reduced-motion still and a screenshot's
+// frame are exact (the sd:frame event holds one).
+import { member, pairCss } from '@agentplot/site-theme/family';
+
+interface Props {
+  caption?: string;
+}
+const { caption } = Astro.props;
+---
+
+<figure class="sd-canvas not-content">
+  <canvas
+    role="img"
+    aria-label="A sounding on sounding/take-mise-2027 works round 1 and writes conclusion.md: take mise 2027.1 once two CI scripts pass --locked, with the Linux runners untried. The operator chooses go on and writes a note, check the Linux runners too. The conclusion goes back into the worktree as rounds/1.md and the note joins question.md. Round 2 works in the same worktree and concludes again, with macOS and Linux runners passing. The operator accepts it. millpond keeps the conclusion as item 4's record, and the two pieces of work it proposes, the CI scripts and the bump, arrive in millpond as items 9 and 10."
+  ></canvas>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+<Fragment set:html={`<style>${pairCss('--dg-pond', member('millpond').accent)}</style>`} />
+
+<style>
+  .sd-canvas {
+    margin: 2rem 0;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.75rem;
+    box-shadow: 0 1.5rem 3rem -1.75rem var(--dg-shadow);
+    background: var(--dg-bg);
+  }
+  figcaption {
+    margin-top: 0.75rem;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+    line-height: 1.5;
+  }
+</style>
+
+<script>
+  type Pt = { x: number; y: number };
+  type Rect = { x: number; y: number; w: number; h: number };
+  const T = 22; // seconds per loop
+  const STILL = 0.93; // the frame a reader who asks for less motion sees
+
+  const clamp = (v: number) => Math.max(0, Math.min(1, v));
+  const ease = (v: number) => (v < 0.5 ? 2 * v * v : 1 - (-2 * v + 2) ** 2 / 2);
+  const span = (f: number, a: number, b: number) => ease(clamp((f - a) / (b - a)));
+  const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+  const lerpR = (a: Rect, b: Rect, t: number): Rect => ({ x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t), w: lerp(a.w, b.w, t), h: lerp(a.h, b.h, t) });
+  // Shown from a to b, fading in and out over d.
+  const win = (f: number, a: number, b = 2, d = 0.012) => (f < a || f > b + d ? 0 : f < a + d ? (f - a) / d : f > b ? 1 - (f - b) / d : 1);
+
+  // Times, as fractions of the loop.
+  const R1 = [0.03, 0.17]; // round 1 works
+  const C1 = 0.18; // conclusion.md, round 1
+  const OUT1 = [0.19, 0.25]; // to the card
+  const BTN1 = 0.27;
+  const GOON = 0.3;
+  const NOTE = [0.31, 0.38];
+  const BACK = [0.41, 0.46]; // into rounds/1.md; the note into question.md
+  const R2 = [0.47, 0.61];
+  const C2 = 0.62;
+  const OUT2 = [0.63, 0.68];
+  const BTN2 = 0.7;
+  const ACCEPT = 0.73;
+  const TOPOND = [0.76, 0.81];
+  const SETTLED = 0.81;
+  const ITEMS = [
+    [0.82, 0.87],
+    [0.85, 0.9],
+  ];
+  const END = 0.965;
+
+  interface Layout {
+    W: number;
+    H: number;
+    heads: Array<[string, number, number]>;
+    tree: Rect;
+    file: (i: number) => Rect;
+    card: Rect;
+    btn: (i: number) => Rect;
+    note: Rect;
+    log: Pt;
+    pond: Rect;
+    item: (i: number) => Rect;
+    tall: boolean;
+  }
+
+  const wide: Layout = {
+    W: 720,
+    H: 392,
+    tall: false,
+    heads: [
+      ['THE WORKTREE', 16, 26],
+      ['THE CONCLUSION', 256, 26],
+      ['MILLPOND', 500, 26],
+    ],
+    tree: { x: 16, y: 38, w: 220, h: 300 },
+    file: (i) => ({ x: 28, y: 136 + i * 32, w: 196, h: 26 }),
+    card: { x: 256, y: 38, w: 224, h: 168 },
+    btn: (i) => ({ x: 256 + i * 78, y: 218, w: 68, h: 24 }),
+    note: { x: 256, y: 254, w: 224, h: 52 },
+    log: { x: 256, y: 324 },
+    pond: { x: 500, y: 38, w: 204, h: 300 },
+    item: (i) => (i === 0 ? { x: 512, y: 70, w: 180, h: 70 } : { x: 512, y: 152 + (i - 1) * 66, w: 180, h: 56 }),
+  };
+
+  const tall: Layout = {
+    W: 360,
+    H: 852,
+    tall: true,
+    heads: [
+      ['THE WORKTREE', 12, 24],
+      ['THE CONCLUSION', 12, 330],
+      ['MILLPOND', 12, 630],
+    ],
+    tree: { x: 8, y: 34, w: 344, h: 266 },
+    file: (i) => ({ x: 18, y: 150 + i * 30, w: 324, h: 24 }),
+    card: { x: 8, y: 342, w: 344, h: 132 },
+    btn: (i) => ({ x: 8 + i * 78, y: 484, w: 68, h: 24 }),
+    note: { x: 8, y: 516, w: 344, h: 40 },
+    log: { x: 12, y: 576 },
+    pond: { x: 8, y: 642, w: 344, h: 198 },
+    item: (i) => (i === 0 ? { x: 18, y: 672, w: 324, h: 62 } : { x: 18 + (i - 1) * 166, y: 744, w: 158, h: 84 }),
+  };
+
+  const FILES = ['question.md', 'try/bump.patch', 'rounds/1.md', 'conclusion.md'];
+
+  function setup(canvas: HTMLCanvasElement) {
+    const ctx = canvas.getContext('2d')!;
+    const fig = canvas.closest('figure')!;
+    let L = wide;
+    let c: Record<string, string> = {};
+    let fonts = { sans: 'sans-serif', mono: 'monospace' };
+
+    const readTheme = () => {
+      const cs = getComputedStyle(canvas);
+      const v = (n: string) => cs.getPropertyValue(n).trim();
+      c = {
+        bg: v('--dg-bg'), panel: v('--dg-panel'), soft: v('--dg-soft'), rule: v('--dg-rule'), fg: v('--dg-fg'), muted: v('--dg-muted'),
+        accent: v('--dg-accent'), accentSoft: v('--dg-accent-soft'), ink: v('--dg-ink'), ok: v('--dg-ok'), warn: v('--dg-warn'), pond: v('--dg-pond'),
+      };
+      fonts = { sans: v('--sl-font') || 'sans-serif', mono: v('--sl-font-mono') || 'monospace' };
+    };
+
+    const resize = () => {
+      const w = canvas.clientWidth;
+      L = w < 560 ? tall : wide;
+      const scale = w / L.W;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.style.height = `${L.H * scale}px`;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(L.H * scale * dpr);
+      ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+    };
+
+    type TextOpts = { size?: number; color?: string; mono?: boolean; weight?: number; align?: CanvasTextAlign; spacing?: number };
+    const text = (s: string, x: number, y: number, o: TextOpts = {}) => {
+      ctx.font = `${o.weight ?? 400} ${o.size ?? 12}px ${o.mono ? fonts.mono : fonts.sans}`;
+      ctx.fillStyle = o.color ?? c.fg;
+      ctx.textAlign = o.align ?? 'left';
+      ctx.textBaseline = 'alphabetic';
+      if (o.spacing) (ctx as any).letterSpacing = `${o.spacing}px`;
+      ctx.fillText(s, x, y);
+      if (o.spacing) (ctx as any).letterSpacing = '0px';
+    };
+    const box = (r: Rect, rad: number, fill?: string, stroke?: string, width = 1.5, dash?: number[]) => {
+      ctx.beginPath();
+      ctx.roundRect(r.x, r.y, r.w, r.h, rad);
+      if (fill) {
+        ctx.fillStyle = fill;
+        ctx.fill();
+      }
+      if (stroke) {
+        ctx.setLineDash(dash ?? []);
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = width;
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    };
+    const alpha = (a: number, fn: () => void) => {
+      if (a <= 0) return;
+      const prev = ctx.globalAlpha;
+      ctx.globalAlpha = prev * a;
+      fn();
+      ctx.globalAlpha = prev;
+    };
+
+    // The conclusion's text, for round 1 or 2, inside r.
+    const conclusion = (r: Rect, round: 1 | 2) => {
+      const x = r.x + 12;
+      text(`conclusion.md · round ${round}`, x, r.y + 20, { size: 10.5, mono: true, color: c.muted });
+      const answer = L.tall ? ['Take mise 2027.1 once two CI scripts', 'pass --locked.'] : ['Take mise 2027.1 once two', 'CI scripts pass --locked.'];
+      answer.forEach((l, i) => text(l, x, r.y + 42 + i * 17, { size: 13, weight: 600 }));
+      const rows: Array<[string, string]> =
+        round === 1
+          ? [
+              ['open', 'the Linux runners are untried'],
+              ['proposes', 'the scripts, then the bump'],
+            ]
+          : [
+              ['evidence', 'macOS and Linux runners pass'],
+              ['proposes', 'the scripts, then the bump'],
+            ];
+      rows.forEach(([k, v], i) => {
+        const y = r.y + (L.tall ? 92 : 94) + i * (L.tall ? 18 : 30);
+        if (L.tall) {
+          text(k, x, y, { size: 10.5, color: c.muted });
+          text(v, x + 72, y, { size: 11.5 });
+        } else {
+          text(k, x, y, { size: 10.5, color: c.muted });
+          text(v, x, y + 15, { size: 11.5 });
+        }
+      });
+    };
+
+    function draw(f: number) {
+      ctx.clearRect(0, 0, L.W, L.H);
+      ctx.fillStyle = c.bg;
+      ctx.fillRect(0, 0, L.W, L.H);
+      const fade = f > END ? 1 - span(f, END, 1) : 1;
+      ctx.globalAlpha = 1;
+
+      for (const [s, x, y] of L.heads) text(s, x, y, { size: 11, color: c.muted, spacing: 0.8 });
+
+      // ---- the worktree
+      const W = L.tree;
+      box(W, 8, c.soft);
+      text('sounding/take-mise-2027', W.x + 12, W.y + 24, { size: 11.5, mono: true, color: c.accent });
+      const round = f >= R2[0] - 0.005 && f < END + 0.02 ? 2 : 1;
+      const working = (f >= R1[0] && f < R1[1]) || (f >= R2[0] && f < R2[1]);
+      alpha(fade, () => {
+        text(`round ${round}`, W.x + 12, W.y + 50, { size: 13, weight: 600 });
+        const state = working ? 'working' : f < R2[1] && f >= R1[1] && f < R2[0] ? 'waiting on you' : f >= R2[1] && f < SETTLED ? 'waiting on you' : f >= SETTLED ? 'accepted' : 'opened';
+        const sc = state === 'working' ? c.accent : state === 'accepted' ? c.ok : state === 'waiting on you' ? c.warn : c.muted;
+        text(state, W.x + W.w - 12, W.y + 50, { size: 11, weight: 600, color: sc, align: 'right' });
+      });
+      // The round's progress, and its timebox.
+      const track: Rect = { x: W.x + 12, y: W.y + 62, w: W.w - 24, h: 6 };
+      box(track, 3, c.panel);
+      const prog = round === 1 ? span(f, R1[0], R1[1]) : span(f, R2[0], R2[1]);
+      if (prog > 0) alpha(fade, () => box({ ...track, w: track.w * prog * 0.8 }, 3, f >= SETTLED ? c.ok : c.accent));
+      text('timebox', W.x + 12, W.y + 84, { size: 10.5, color: c.muted });
+      text('FILES', W.x + 12, W.y + 108, { size: 10.5, color: c.muted, spacing: 0.8 });
+
+      // Which files the worktree holds now.
+      const has = [
+        true,
+        true,
+        f >= BACK[1] && f < END + 0.02,
+        (f >= C1 && f < BACK[0]) || (f >= C2 && f < END + 0.02),
+      ];
+      FILES.forEach((name, i) => {
+        const r = L.file(i);
+        if (i === 2 && f < BACK[1]) return;
+        if (i === 3 && !has[3]) return;
+        const a = i === 2 ? clamp((f - BACK[1]) / 0.01) * fade : i === 3 ? (f < BACK[0] ? clamp((f - C1) / 0.01) : clamp((f - C2) / 0.01)) * fade : 1;
+        alpha(a, () => {
+          box(r, 5, i === 3 ? c.accentSoft : c.panel, i === 3 ? c.accent : c.rule, i === 3 ? 1.5 : 1);
+          text(name, r.x + 10, r.y + r.h / 2 + 4, { size: 11.5, mono: true });
+          if (i === 0 && f >= BACK[1] && f < END + 0.02) text('+ your note', r.x + r.w - 10, r.y + r.h / 2 + 4, { size: 10.5, color: c.warn, align: 'right', weight: 600 });
+          if (i === 1) text('prototype code', r.x + r.w - 10, r.y + r.h / 2 + 4, { size: 10.5, color: c.muted, align: 'right' });
+          if (i === 2) text('round 1, kept', r.x + r.w - 10, r.y + r.h / 2 + 4, { size: 10.5, color: c.muted, align: 'right' });
+        });
+      });
+
+      // ---- the conclusion's place, the choices and the record of them
+      const C = L.card;
+      box(C, 8, undefined, c.rule, 1, [4, 3]);
+      const empty = !(f >= OUT1[0] && f < BACK[1]) && !(f >= OUT2[0] && f < TOPOND[1]);
+      if (empty && f < OUT2[0]) text(f < BACK[1] ? 'not written yet' : 'round 2 at work', C.x + C.w / 2, C.y + C.h / 2 + 4, { size: 12, color: c.muted, align: 'center' });
+      if (f >= TOPOND[1] && f < END + 0.02)
+        alpha(clamp((f - TOPOND[1]) / 0.012) * fade, () => {
+          text('round 2, accepted', C.x + C.w / 2, C.y + C.h / 2 - 6, { size: 12, color: c.ok, weight: 600, align: 'center' });
+          text("millpond keeps it as item 4's record", C.x + C.w / 2, C.y + C.h / 2 + 14, { size: 11, color: c.muted, align: 'center' });
+        });
+      const labels: Array<[string, number]> = [
+        ['accept', 0],
+        ['go on', 1],
+        ['drop', 2],
+      ];
+      const btnOn = win(f, BTN1, BACK[0]) + win(f, BTN2, TOPOND[0] + 0.02);
+      labels.forEach(([s, i]) => {
+        const r = L.btn(i);
+        alpha(Math.min(1, btnOn) * fade, () => {
+          const lit = (i === 1 && f >= GOON && f < BACK[0]) || (i === 0 && f >= ACCEPT && f < TOPOND[0] + 0.02);
+          box(r, 12, lit ? (i === 0 ? c.ok : c.accent) : c.panel, lit ? undefined : c.muted, 1);
+          text(s, r.x + r.w / 2, r.y + 16, { size: 11.5, weight: lit ? 600 : 400, color: lit ? c.ink : c.fg, align: 'center' });
+        });
+      });
+      // The note, typed, then carried into question.md.
+      const noteText = 'check the Linux runners too';
+      if (f >= NOTE[0] && f < BACK[1]) {
+        const N = L.note;
+        const to = L.file(0);
+        const t = span(f, BACK[0], BACK[1]);
+        const r = lerpR(N, { x: to.x + to.w - 90, y: to.y + 4, w: 80, h: to.h - 8 }, t);
+        alpha(clamp((f - NOTE[0]) / 0.01) * (1 - t * 0.6), () => {
+          box(r, 6, c.panel, c.warn, 1.5);
+          if (t < 0.3) {
+            const shown = Math.round(noteText.length * clamp((f - NOTE[0] - 0.01) / (NOTE[1] - NOTE[0] - 0.01)));
+            text('your note', r.x + 10, r.y + 16, { size: 10.5, color: c.warn, weight: 600 });
+            text(noteText.slice(0, shown), r.x + (L.tall ? 80 : 10), r.y + (L.tall ? 16 : 36), { size: 12 });
+          }
+        });
+      }
+      // The record of each decision, kept.
+      const log: Array<[string, string, number]> = [
+        ['round 1 · go on, with a note', c.accent, BACK[0]],
+        ['round 2 · accept', c.ok, ACCEPT],
+      ];
+      log.forEach(([s, col, at], i) => {
+        alpha(clamp((f - at) / 0.012) * fade, () => {
+          const y = L.log.y + i * 18;
+          ctx.beginPath();
+          ctx.arc(L.log.x + 4, y - 4, 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = col;
+          ctx.fill();
+          text(s, L.log.x + 14, y, { size: 11.5, color: c.fg });
+        });
+      });
+      if (!L.tall) text('drop records why and removes the worktree', C.x, L.H - 16, { size: 10.5, color: c.muted });
+
+      // The conclusion card: out of the worktree, back as a round, on to millpond.
+      const fileR = L.file(3);
+      const roundsR = L.file(2);
+      const item0 = L.item(0);
+      let card: Rect | null = null;
+      let which: 1 | 2 = 1;
+      let content = 0;
+      if (f >= OUT1[0] && f < BACK[1]) {
+        which = 1;
+        if (f < OUT1[1]) card = lerpR(fileR, C, span(f, OUT1[0], OUT1[1]));
+        else if (f < BACK[0]) card = C;
+        else card = lerpR(C, roundsR, span(f, BACK[0], BACK[1]));
+        content = f < OUT1[1] ? clamp((f - OUT1[1] + 0.015) / 0.015) : f < BACK[0] ? 1 : 1 - clamp((f - BACK[0]) / 0.015);
+      } else if (f >= OUT2[0] && f < TOPOND[1]) {
+        which = 2;
+        if (f < OUT2[1]) card = lerpR(fileR, C, span(f, OUT2[0], OUT2[1]));
+        else if (f < TOPOND[0]) card = C;
+        else card = lerpR(C, item0, span(f, TOPOND[0], TOPOND[1]));
+        content = f < OUT2[1] ? clamp((f - OUT2[1] + 0.015) / 0.015) : f < TOPOND[0] ? 1 : 1 - clamp((f - TOPOND[0]) / 0.015);
+      }
+      if (card) {
+        const k = card;
+        const accepted = which === 2 && f >= ACCEPT;
+        box(k, 8, c.accentSoft, accepted ? c.ok : c.accent, 1.5);
+        if (content > 0) alpha(content, () => conclusion(k, which));
+      }
+
+      // ---- millpond: the item that asked, then the items the work became
+      const P = L.pond;
+      box(P, 8, c.panel, c.pond, 1.5);
+      text('millpond', P.x + 12, P.y + 20, { size: 13, weight: 600, color: c.pond });
+      text('the inbox', P.x + P.w - 12, P.y + 20, { size: 10.5, color: c.muted, align: 'right' });
+      const I0 = item0;
+      const settled = f >= SETTLED && f < END + 0.02;
+      box(I0, 6, c.panel, settled ? c.ok : c.rule, settled ? 1.5 : 1);
+      text('item 4 · asks a question', I0.x + 10, I0.y + 18, { size: 10.5, color: c.muted });
+      text('take mise 2027.1?', I0.x + 10, I0.y + 37, { size: 13, weight: 600 });
+      if (settled) alpha(clamp((f - SETTLED) / 0.012) * fade, () => text(L.tall ? 'settled by its conclusion, round 2' : 'settled by its conclusion', I0.x + 10, I0.y + 56, { size: 11, color: c.ok, weight: 600 }));
+      else text('sent to a sounding', I0.x + 10, I0.y + 56, { size: 11, color: c.muted });
+      const work: Array<[string, string[]]> = [
+        ['item 9 · proposed', L.tall ? ['CI scripts pass', '--locked'] : ['CI scripts pass --locked']],
+        ['item 10 · proposed', L.tall ? ['bump mise to', '2027.1'] : ['bump mise to 2027.1']],
+      ];
+      work.forEach(([head, lines], i) => {
+        const [a, b] = ITEMS[i];
+        if (f < a || f > END + 0.02) return;
+        const to = L.item(i + 1);
+        const t = span(f, a, b);
+        const from: Rect = { x: I0.x + 10, y: I0.y + 44, w: 40, h: 14 };
+        const r = lerpR(from, to, t);
+        alpha(fade, () => {
+          box(r, 6, t < 1 ? c.accent : c.panel, c.accent, 1.5);
+          if (t >= 1) {
+            text(head, r.x + 10, r.y + 18, { size: 10.5, color: c.muted });
+            lines.forEach((l, j) => text(l, r.x + 10, r.y + 37 + j * 16, { size: 12.5, weight: 600 }));
+          }
+        });
+      });
+      if (f < ITEMS[0][0]) {
+        const r = L.item(1);
+        text('the work a conclusion', r.x + 10, r.y + 24, { size: 11, color: c.muted });
+        text('proposes arrives here', r.x + 10, r.y + 40, { size: 11, color: c.muted });
+      }
+    }
+
+    let frame: number | null = null;
+    let pinned: number | null = null;
+    let visible = true;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const start = performance.now();
+    const loop = (now: number) => {
+      draw((((now - start) / 1000) % T) / T);
+      frame = requestAnimationFrame(loop);
+    };
+    const render = () => {
+      if (frame !== null) cancelAnimationFrame(frame);
+      frame = null;
+      if (pinned !== null) return draw(pinned);
+      if (reduce.matches || !visible) return draw(STILL);
+      frame = requestAnimationFrame(loop);
+    };
+
+    readTheme();
+    resize();
+    render();
+    new ResizeObserver(() => {
+      resize();
+      render();
+    }).observe(canvas);
+    new MutationObserver(() => {
+      readTheme();
+      render();
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    reduce.addEventListener('change', render);
+    new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      render();
+    }).observe(canvas);
+    document.fonts?.ready.then(render);
+    // A screenshot's frame: hold the loop at one point.
+    fig.addEventListener('sd:frame', (e) => {
+      pinned = (e as CustomEvent<number>).detail;
+      render();
+    });
+  }
+
+  document.querySelectorAll<HTMLCanvasElement>('figure.sd-canvas canvas').forEach(setup);
+</script>
