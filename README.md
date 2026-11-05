@@ -39,7 +39,7 @@ each conclusion: accept it, send it back for another round, or drop it.
 sounding is one of a family. headwater reports releases, eddy lists
 meetings, millpond keeps the inbox and sluice lands changes. sounding
 stands alone and works the same with millpond, with crew, or under
-Flywheel, whose elaborations each run as a sounding.
+Boomdrive, whose elaborations each run as a sounding.
 
 ## This repository
 

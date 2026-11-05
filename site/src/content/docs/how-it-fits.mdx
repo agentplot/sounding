@@ -1,6 +1,6 @@
 ---
 title: How it fits
-description: Where sounding sits among millpond, crew, sluice, headwater, eddy and Flywheel, where its questions come from, and what it never does.
+description: Where sounding sits among millpond, crew, sluice, headwater, eddy and Boomdrive, where its questions come from, and what it never does.
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
@@ -38,7 +38,7 @@ own Claude Code and herdr plugins.
     on its rail and turns the work an accepted one proposes into plan
     entries.
   </Card>
-  <Card title="Flywheel · the umbrella">
+  <Card title="Boomdrive · the umbrella">
     Each of an intent's elaborations runs as a sounding. Finishing with
     deliverables is `conclude`, blocking on a question is `ask`, and an
     offer is `offer`.
@@ -52,7 +52,7 @@ own Claude Code and herdr plugins.
 | On its own | your `/sound` | a card, or sounding's herdr plugin |
 | With millpond | items millpond sends; a key on a headwater release that needs judgment; `/sound` on a decision a meeting left open, its transcript a source | the same, recorded against the item |
 | With crew | crew's planner and design agent, calling `sounding open` as crew calls millpond | crew's rail |
-| With Flywheel | an intent's elaborations, each one a sounding | Flywheel's elaboration types, which write the conclusion into the design book and claims |
+| With Boomdrive | an intent's elaborations, each one a sounding | Boomdrive's elaboration types, which write the conclusion into the design book and claims |
 
 Moving from one setup to the next changes who sends the question and
 where you decide the conclusion. The question, the worktree, the three
@@ -69,11 +69,11 @@ exits and the rounds stay the same.
   is the record that settles signals, and only offers come back as
   signals.
 - **It never plans across items.** crew's planner orders work today,
-  and Flywheel's does later.
+  and Boomdrive's does later.
 
 ## Built once, used everywhere
 
 sounding holds the one implementation of a question, its rounds and the
 shape of a conclusion. It grows out of crew's elaborations (crew ADR
-0019), and crew and Flywheel both build on it: crew calls sounding as
-it calls millpond, and each of Flywheel's elaborations is a sounding.
+0019), and crew and Boomdrive both build on it: crew calls sounding as
+it calls millpond, and each of Boomdrive's elaborations is a sounding.
